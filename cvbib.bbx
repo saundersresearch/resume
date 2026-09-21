@@ -2,8 +2,10 @@
 
 % ---- custom fields ------------------------------------------------------
 % (declaring a field with datatype=boolean crashes this biber build, so
-% "nohighlight" is a literal field checked against the string "true")
-\DeclareDatamodelFields[type=field, datatype=literal]{venue}
+% "nohighlight" is a literal field checked against the string "true").
+% Venue detail (journal/conference name, volume, pages, doi, ...) now lives
+% in ordinary BibTeX fields -- journal/booktitle, volume, number, pages,
+% year, doi, note -- instead of one hand-formatted "venue" string.
 \DeclareDatamodelFields[type=field, datatype=literal]{groupcredit}
 \DeclareDatamodelFields[type=field, datatype=literal]{nohighlight}
 
@@ -22,18 +24,42 @@
        {\addcomma\space}}%
 }
 
-% ---- one driver for every entry: Author list. Title. Venue. ------------
-% Author and title are both optional (Talks entries have neither an
-% author byline nor always a title), so each piece only prints -- with
-% its trailing ". " -- when actually present.
+% ---- shared venue tail: just ", Year." -- or "." on its own when no year
+% is on file yet (a submitted manuscript with no venue details settled).
+% Volume/issue/page numbers are deliberately not printed here, even when
+% present in the .bib data -- the CV lists venue and year only.
+\newcommand{\cvbibvenuetail}{%
+  \iffieldundef{year}{.}{,\space\printfield{year}.}}
+
+% ---- one driver for every entry: Author list. "Title." Venue, Year. -----
+% doi: ... Note. Author, title, the venue itself, doi, and note are all
+% optional (Talks entries have neither an author byline nor a doi), so
+% each piece only prints -- with its own trailing punctuation -- when
+% actually present. Conference papers, abstracts, and talks are entered
+% as @inproceedings (booktitle) rather than @article (journal); both
+% share this one driver via the alias declared below. A journal name
+% prints italicized and a conference/workshop name upright purely via
+% each field's own \DeclareFieldFormat (set in the main .tex, since
+% biblatex's default formats already italicize both fields by default --
+% \printfield here must stay unadorned, with no \emph/\textit of its
+% own: \emph toggles relative to whatever shape is already active, so
+% wrapping an already-\mkbibemph'd field a second time flips it back off.
 \DeclareBibliographyDriver{article}{%
   \ifnameundef{author}{}{%
     \printnames{author}%
     \iffieldundef{groupcredit}{}{\space\printfield{groupcredit}}%
     .\space}%
-  \iffieldundef{title}{}{\printfield{title}.\space}%
-  \printfield{venue}%
+  \iffieldundef{title}{}{\textquotedblleft\printfield{title}\textquotedblright.\space}%
+  % biblatex's default sourcemap silently renames the legacy BibTeX field
+  % "journal" to "journaltitle" when biber reads the .bib files, so that
+  % (not "journal") is the field name to test/print here.
+  \iffieldundef{journaltitle}
+    {\iffieldundef{booktitle}{}{\printfield{booktitle}\cvbibvenuetail}}
+    {\printfield{journaltitle}\cvbibvenuetail}%
+  \iffieldundef{doi}{}{\space doi:\space\printfield{doi}.}%
+  \iffieldundef{note}{}{\space\printfield{note}}%
   \finentry}
+\DeclareBibliographyAlias{inproceedings}{article}
 
 % ---- environment that lays entries out in the CV's label column -------
 % Every entry gets either a blank label column (published) or an italic

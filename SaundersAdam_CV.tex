@@ -30,40 +30,67 @@
                   label=\textbullet, itemsep=1pt, topsep=3pt, parsep=0pt,
                   partopsep=0pt}
 
-% \cvlabelbox{content} -- a \cvlabelwidth-wide, top-aligned label box for
+% \cvfitbox{width}{content} -- a fixed-width, top-aligned box that lets
+% its content wrap onto further lines inside it instead of overflowing --
+% but a top-aligned multi-line \parbox reports its *entire* extra height
+% as depth (everything below its first baseline), so without correction
+% the very next line of running text after it gets pushed down by all of
+% that accumulated depth in one lump, i.e. one visible gap exactly where
+% a wrapped box meets whatever comes after it. Forcing the depth back
+% down to a normal single line's depth (via a reference \strut) doesn't
+% touch what's drawn -- the box's later lines still print in full -- it
+% only corrects what TeX *thinks* the box's footprint is, so the next
+% line lands at the usual single-line spacing instead. \strut inside the
+% box also guards against a real oddity: a *completely* empty \parbox
+% (an empty label or date) silently reverts to zero width, which would
+% throw off that row's own indent/alignment.
+\newbox\cvfitboxreg
+\newbox\cvrefboxreg
+\newcommand{\cvfitbox}[2]{%
+  \setbox\cvfitboxreg=\hbox{\parbox[t]{#1}{\raggedright#2\strut}}%
+  \setbox\cvrefboxreg=\hbox{\strut}%
+  \dp\cvfitboxreg=\dp\cvrefboxreg\relax
+  \box\cvfitboxreg}
+
+% \cvlabelbox{content} -- \cvfitbox at the fixed label-column width, for
 % use inline at the start of a \hangindent paragraph. A label too wide
 % for \cvlabelwidth (e.g. "Scientific Experience") wraps onto a second
-% line inside it -- but a top-aligned multi-line \parbox reports its
-% *entire* extra height as depth (everything below its first baseline),
-% so without correction the very next line of running text -- whether
-% this same row's own wrapped continuation, or the next \cvrow{}{...}
-% row's text -- gets pushed down by all of that accumulated depth in one
-% lump, i.e. one visible gap exactly where a 2-line label meets whatever
-% comes after it. Forcing the depth back down to a normal single line's
-% depth (via a reference \strut) doesn't touch what's drawn -- the
-% label's later lines still print in full -- it only corrects what TeX
-% *thinks* the box's footprint is, so the next line lands at the usual
-% single-line spacing instead. A nice side effect: that following text
-% now naturally lands flush beside the label's own 2nd/3rd line too,
-% since both are back on the document's ordinary line rhythm. \strut
-% inside the box also guards against a real oddity: a *completely*
-% empty \parbox (the {} label used by every row after the first)
-% silently reverts to zero width, which would throw off that row's
-% own indent.
-\newbox\cvlabelboxreg
-\newbox\cvrefboxreg
-\newcommand{\cvlabelbox}[1]{%
-  \setbox\cvlabelboxreg=\hbox{\parbox[t]{\cvlabelwidth}{\raggedright#1\strut}}%
-  \setbox\cvrefboxreg=\hbox{\strut}%
-  \dp\cvlabelboxreg=\dp\cvrefboxreg\relax
-  \box\cvlabelboxreg}
+% line inside it, flush with the content that follows thanks to
+% \cvfitbox's depth correction above.
+\newcommand{\cvlabelbox}[1]{\cvfitbox{\cvlabelwidth}{#1}}
 
-% \cvrow{label}{text}{date} -- entry row with a right-flushed date
-% (the date is kept in an \mbox so it moves to the next line as a whole
-% instead of splitting mid-phrase, e.g. "May" / "2023").
+% \cvplainbox{width}{content} -- like \cvfitbox, but *without* the depth
+% correction: for \cvrow's content box below. A wrapped label is a
+% section heading whose leftover line(s) are meant to be shared with
+% whatever short entry comes right after (that's what \cvfitbox's
+% correction is for), but a wrapped *entry* -- an award name, say -- is
+% that entry's own real text, and the row after it must not start until
+% that text is actually done printing. So the content box keeps its true
+% (uncorrected) depth, which is exactly the extra space needed to clear
+% it, while the label box beside it still uses the corrected \cvlabelbox.
+% \hangindent inside the box indents every line after the first, so a
+% wrapped second (or third) line reads as a clear continuation of the
+% first rather than lining back up with it.
+\newcommand{\cvplainbox}[2]{\hbox{\parbox[t]{#1}{\hangindent=1em\hangafter=1\raggedright#2\strut}}}
+
+% \cvrow{label}{text}{date} -- entry row with a right-flushed date. The
+% date column is a fixed width reserved out of the line, so long entry
+% text wraps onto a further line -- inside its own \cvplainbox, narrower
+% than the full remaining width -- rather than running up against (or
+% past) the date. Whichever of label, content is taller wins: a wrapped
+% label's extra lines are free to be shared with a short next entry (see
+% \cvplainbox above), but a wrapped entry's own extra lines are real,
+% reserved space. \cvdatewidth is sized generously for the longest date
+% range used in this CV (e.g. "August 2019 -- May 2023"); \makebox keeps
+% the date text together as a unit so it can't split mid-phrase, e.g.
+% "May" / "2023".
+\newlength{\cvdatewidth}
+\setlength{\cvdatewidth}{1.5in}
+\newlength{\cvcontentwidth}
+\setlength{\cvcontentwidth}{\dimexpr\textwidth-\cvlabelwidth-\cvdatewidth-0.5em\relax}
 \newcommand{\cvrow}[3]{%
-  \par\noindent\hangindent=\cvlabelwidth\hangafter=1
-  \cvlabelbox{\textbf{#1}}#2\hspace{0.75em}\hfill\mbox{#3}\par}
+  \par\noindent
+  \cvlabelbox{\textbf{#1}}\cvplainbox{\cvcontentwidth}{#2}\hspace{0.5em}\makebox[\cvdatewidth][r]{#3}\par}
 
 % \cvpar{label}{text} -- plain running paragraph, no date column
 \newcommand{\cvpar}[2]{%
@@ -78,13 +105,30 @@
 % for the custom bibliography driver (author list with the CV owner's name
 % auto-bolded, plus the "cvmain"/"cvtag" layout environments used below).
 % ---------------------------------------------------------------------------
-\usepackage[backend=biber, sorting=none, bibstyle=cvbib, citestyle=numeric, maxnames=99, minnames=99]{biblatex}
+% sorting=ydnt sorts each \printbibliography call (already split into
+% accepted/published/submitted groups by its own keyword filter) by year,
+% descending -- newest first, matching the hand-ordered \cvrow sections.
+\usepackage[backend=biber, sorting=ydnt, bibstyle=cvbib, citestyle=numeric, maxnames=99, minnames=99]{biblatex}
 % citestyle=numeric's own .cbx loads after cvbib.bbx and re-declares the
 % title format with quotation marks, so override it here instead, after
-% both have loaded. An entrytype-specific [article] format takes priority
-% over a generic one, so override both.
+% both have loaded -- cvbib.bbx's driver adds its own quotation marks
+% around the title explicitly, so the field format itself must stay
+% plain. An entrytype-specific format takes priority over the generic
+% one, so override article and inproceedings (conference papers,
+% abstracts, talks) too.
 \DeclareFieldFormat{title}{#1}
 \DeclareFieldFormat[article]{title}{#1}
+\DeclareFieldFormat[inproceedings]{title}{#1}
+% biblatex's standard style italicizes both journaltitle and booktitle by
+% default (each wrapped in \mkbibemph, i.e. \emph). journaltitle's default
+% italic is exactly what's wanted for a journal name, so it's left alone;
+% booktitle's is reset to plain here so a conference/workshop name (used
+% for conference papers, abstracts, and talks) prints upright instead.
+\DeclareFieldFormat[inproceedings]{booktitle}{#1}
+% Likewise, citestyle=numeric's default doi format already prepends its
+% own "DOI:" label (and wraps it as a link), so it must be reset to a bare
+% value too -- cvbib.bbx's driver supplies the "doi:" label itself.
+\DeclareFieldFormat{doi}{#1}
 \addbibresource[label=journal-published]{bib/journal-published.bib}
 \addbibresource[label=journal-accepted]{bib/journal-accepted.bib}
 \addbibresource[label=journal-submitted]{bib/journal-submitted.bib}
@@ -101,9 +145,7 @@
 \begin{center}
   {\LARGE\textbf{Adam Saunders}}
 \end{center}
-\vspace{2pt}
 \noindent\rule{\linewidth}{0.4pt}
-\vspace{6pt}
 
 \noindent\textbf{Email:} adam.m.saunders@vanderbilt.edu \hfill \textbf{Phone:} (937) 620-5338
 
@@ -212,10 +254,10 @@
 \vspace{10pt}
 
 % ------------------------------- Professional Outreach -------------------------------
-\cvrow{Professional Outreach}{Reviewer, \textit{Medical Image Analysis}.}{}
-\cvrow{}{Reviewer, \textit{Journal of Medical Imaging}.}{2024}
-\cvrow{}{Reviewer, \textit{Scientific Reports}.}{2025}
+\cvrow{Professional Outreach}{Reviewer, \textit{Medical Image Analysis}.}{2026}
 \cvrow{}{Secretary, VALIANT Attempt, Vanderbilt University.}{2024 -- Present}
+\cvrow{}{Reviewer, \textit{Scientific Reports}.}{2025}
+\cvrow{}{Reviewer, \textit{Journal of Medical Imaging}.}{2024}
 
 \vspace{10pt}
 
