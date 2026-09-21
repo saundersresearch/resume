@@ -1,0 +1,253 @@
+% !TEX program = xelatex
+% Compile with: xelatex SaundersAdam_CV.tex && biber SaundersAdam_CV && xelatex SaundersAdam_CV.tex && xelatex SaundersAdam_CV.tex
+\documentclass[11pt]{article}
+
+\usepackage[letterpaper, margin=1in]{geometry}
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{etoolbox}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\emergencystretch=1.5em
+\pagestyle{empty}
+
+% ---------------------------------------------------------------------------
+% Layout machinery: a fixed-width "label" column on the left and a "content"
+% column on the right. The label is printed only on the first row of a
+% section; every following row/paragraph passes an empty label so the text
+% keeps flowing at the content-column indent -- including across page breaks,
+% since this is just ordinary paragraphs, not a table. Labels are kept to a
+% single line (the column is sized to fit the widest one, "Abstracts/Short
+% Papers") so a label never spills onto a second line and leaves a blank gap
+% next to it.
+% ---------------------------------------------------------------------------
+\newlength{\cvlabelwidth}
+\setlength{\cvlabelwidth}{1.2in}
+\setlist[itemize]{leftmargin=\dimexpr\cvlabelwidth+0.25in\relax,
+                  label=\textbullet, itemsep=1pt, topsep=3pt, parsep=0pt,
+                  partopsep=0pt}
+
+% \cvlabelbox{content} -- a \cvlabelwidth-wide, top-aligned label box for
+% use inline at the start of a \hangindent paragraph. A label too wide
+% for \cvlabelwidth (e.g. "Scientific Experience") wraps onto a second
+% line inside it -- but a top-aligned multi-line \parbox reports its
+% *entire* extra height as depth (everything below its first baseline),
+% so without correction the very next line of running text -- whether
+% this same row's own wrapped continuation, or the next \cvrow{}{...}
+% row's text -- gets pushed down by all of that accumulated depth in one
+% lump, i.e. one visible gap exactly where a 2-line label meets whatever
+% comes after it. Forcing the depth back down to a normal single line's
+% depth (via a reference \strut) doesn't touch what's drawn -- the
+% label's later lines still print in full -- it only corrects what TeX
+% *thinks* the box's footprint is, so the next line lands at the usual
+% single-line spacing instead. A nice side effect: that following text
+% now naturally lands flush beside the label's own 2nd/3rd line too,
+% since both are back on the document's ordinary line rhythm. \strut
+% inside the box also guards against a real oddity: a *completely*
+% empty \parbox (the {} label used by every row after the first)
+% silently reverts to zero width, which would throw off that row's
+% own indent.
+\newbox\cvlabelboxreg
+\newbox\cvrefboxreg
+\newcommand{\cvlabelbox}[1]{%
+  \setbox\cvlabelboxreg=\hbox{\parbox[t]{\cvlabelwidth}{\raggedright#1\strut}}%
+  \setbox\cvrefboxreg=\hbox{\strut}%
+  \dp\cvlabelboxreg=\dp\cvrefboxreg\relax
+  \box\cvlabelboxreg}
+
+% \cvrow{label}{text}{date} -- entry row with a right-flushed date
+% (the date is kept in an \mbox so it moves to the next line as a whole
+% instead of splitting mid-phrase, e.g. "May" / "2023").
+\newcommand{\cvrow}[3]{%
+  \par\noindent\hangindent=\cvlabelwidth\hangafter=1
+  \cvlabelbox{\textbf{#1}}#2\hspace{0.75em}\hfill\mbox{#3}\par}
+
+% \cvpar{label}{text} -- plain running paragraph, no date column
+\newcommand{\cvpar}[2]{%
+  \par\noindent\hangindent=\cvlabelwidth\hangafter=1
+  \cvlabelbox{\textbf{#1}}#2\par}
+
+% Inline red highlight (matches the award callout in the source CV)
+\newcommand{\highlight}[1]{\textcolor{red}{#1}}
+
+% ---------------------------------------------------------------------------
+% Publications, pulled from separate BibTeX files by status. See cvbib.bbx
+% for the custom bibliography driver (author list with the CV owner's name
+% auto-bolded, plus the "cvmain"/"cvtag" layout environments used below).
+% ---------------------------------------------------------------------------
+\usepackage[backend=biber, sorting=none, bibstyle=cvbib, citestyle=numeric, maxnames=99, minnames=99]{biblatex}
+% citestyle=numeric's own .cbx loads after cvbib.bbx and re-declares the
+% title format with quotation marks, so override it here instead, after
+% both have loaded. An entrytype-specific [article] format takes priority
+% over a generic one, so override both.
+\DeclareFieldFormat{title}{#1}
+\DeclareFieldFormat[article]{title}{#1}
+\addbibresource[label=journal-published]{bib/journal-published.bib}
+\addbibresource[label=journal-accepted]{bib/journal-accepted.bib}
+\addbibresource[label=journal-submitted]{bib/journal-submitted.bib}
+\addbibresource[label=conference-published]{bib/conference-published.bib}
+\addbibresource[label=conference-accepted]{bib/conference-accepted.bib}
+\addbibresource[label=conference-submitted]{bib/conference-submitted.bib}
+\addbibresource[label=talks]{bib/talks.bib}
+\addbibresource[label=abstracts]{bib/abstracts.bib}
+\nocite{*}
+
+\begin{document}
+
+% ------------------------------- Header -------------------------------
+\begin{center}
+  {\LARGE\textbf{Adam Saunders}}
+\end{center}
+\vspace{2pt}
+\noindent\rule{\linewidth}{0.4pt}
+\vspace{6pt}
+
+\noindent\textbf{Email:} adam.m.saunders@vanderbilt.edu \hfill \textbf{Phone:} (937) 620-5338
+
+\vspace{10pt}
+
+% ------------------------------- Summary -------------------------------
+\cvpar{Summary}{An electrical engineering PhD student studying medical imaging. Research focused on applying artificial intelligence tools to impute missing information from imperfect data. Strengths in analytical skills and scientific communication.}
+
+\vspace{10pt}
+
+% ------------------------------- Education -------------------------------
+\cvrow{Education}{PhD, Electrical and Computer Engineering}{July 2023 -- Present}
+\cvrow{}{\textit{Vanderbilt University}}{}
+\cvrow{}{Bachelor of Electrical Engineering,\hspace{0.3em}\textit{summa cum laude}}{August 2019 -- May 2023}
+\cvrow{}{\textit{University of Dayton}}{}
+\begin{itemize}
+  \item Minor in mathematics
+\end{itemize}
+
+\vspace{10pt}
+
+% ------------------------------- Scientific Experience -------------------------------
+\cvrow{Scientific Experience}{Research Assistant}{July 2023 -- Present}
+\cvrow{}{\textit{Vanderbilt University}}{}
+\begin{itemize}
+  \item Researcher in the Medical-image Analysis and Statistical Interpretation (MASI) Lab and Vanderbilt Lab for Immersive AI Translation (VALIANT)
+  \item Collaborated with scientists to communicate published findings
+\end{itemize}
+
+\cvrow{}{SULI Intern}{June 2022 -- August 2022}
+\cvrow{}{\textit{Oak Ridge National Laboratory}}{}
+\begin{itemize}
+  \item Explored deep learning algorithms on a world-leading supercomputer
+  \item Performed and presented medical image processing research
+\end{itemize}
+
+\cvrow{}{Physics Teaching Assistant}{January 2022 -- May 2022}
+\cvrow{}{\textit{University of Dayton}}{January 2021 -- May 2021}
+\begin{itemize}
+  \item Empowered over 50 students to learn calculus-based mechanics
+  \item Assisted in the development of testing materials and led office hours
+\end{itemize}
+
+\cvrow{}{Computer Engineering Intern}{May 2021 -- August 2021}
+\cvrow{}{\textit{Defense Research Associates, Inc.}}{}
+\begin{itemize}
+  \item Designed and implemented digital hardware interfaces for sensors
+  \item Presented technical results and documentation for future deployment
+\end{itemize}
+
+\cvrow{}{Physics Grader}{January 2020 -- May 2020}
+\cvrow{}{\textit{University of Dayton}}{}
+\begin{itemize}
+  \item Evaluated exams and group exercises for over 50 students
+  \item Led weekly homework help sessions in a challenging, fast-paced class
+\end{itemize}
+
+\vspace{10pt}
+
+% ------------------------------- Journal Articles -------------------------------
+\global\cvbibfirsttrue
+\renewcommand{\cvbiblabel}{Journal Articles}
+\renewcommand{\cvbibtag}{accepted}
+\printbibliography[keyword=journal-accepted, env=cvpub, heading=none]
+
+\vspace{10pt}
+\renewcommand{\cvbibtag}{}
+\printbibliography[keyword=journal-published, env=cvpub, heading=none]
+
+\vspace{10pt}
+\renewcommand{\cvbibtag}{submitted}
+\printbibliography[keyword=journal-submitted, env=cvpub, heading=none]
+
+\vspace{10pt}
+
+% ------------------------------- Conference Papers -------------------------------
+\global\cvbibfirsttrue
+\renewcommand{\cvbiblabel}{Conference Papers}
+\renewcommand{\cvbibtag}{accepted}
+\printbibliography[keyword=conference-accepted, env=cvpub, heading=none]
+
+\vspace{10pt}
+\renewcommand{\cvbibtag}{}
+\printbibliography[keyword=conference-published, env=cvpub, heading=none]
+
+\vspace{10pt}
+\renewcommand{\cvbibtag}{submitted}
+\printbibliography[keyword=conference-submitted, env=cvpub, heading=none]
+
+\vspace{10pt}
+
+% ------------------------------- Abstracts/Short Papers -------------------------------
+\global\cvbibfirsttrue
+\renewcommand{\cvbiblabel}{Abstracts/Short Papers}
+\renewcommand{\cvbibtag}{}
+\printbibliography[keyword=abstracts, env=cvpub, heading=none]
+
+\vspace{10pt}
+
+% ------------------------------- Talks -------------------------------
+\global\cvbibfirsttrue
+\renewcommand{\cvbiblabel}{Talks}
+\renewcommand{\cvbibtag}{}
+\printbibliography[keyword=talks, env=cvpub, heading=none]
+
+\vspace{10pt}
+
+% ------------------------------- Professional Outreach -------------------------------
+\cvrow{Professional Outreach}{Reviewer, \textit{Medical Image Analysis}.}{}
+\cvrow{}{Reviewer, \textit{Journal of Medical Imaging}.}{2024}
+\cvrow{}{Reviewer, \textit{Scientific Reports}.}{2025}
+\cvrow{}{Secretary, VALIANT Attempt, Vanderbilt University.}{2024 -- Present}
+
+\vspace{10pt}
+
+% ------------------------------- Honors and Awards -------------------------------
+\cvrow{Honors and Awards}{Third Place, 3-minute Poster Competition, SPIE Medical Imaging}{February 2026}
+\cvrow{}{Robert F. Wagner All-Conference Best Student Paper Finalist, SPIE Medical Imaging}{February 2025}
+\cvrow{}{Second Place, 3-minute Poster Competition, SPIE Medical Imaging}{February 2025}
+\cvrow{}{Graduate School Travel Grant, Vanderbilt University}{November 2024}
+\cvrow{}{University Graduate Fellowship, Vanderbilt University}{July 2024}
+\cvrow{}{Thomas R. Armstrong Award of Excellence for Outstanding Electrical Engineering Achievement, University of Dayton Department of Electrical and Computer Engineering}{May 2023}
+\cvrow{}{Outstanding Collaborative Pianist, University of Dayton Department of Music}{May 2023}
+\cvrow{}{Dean's List, University of Dayton}{August 2019 -- May 2023}
+\cvrow{}{SPIE Travel Grant}{February 2023}
+\cvrow{}{Best Poster in Directorate, ORNL Summer Intern Symposium, Oak Ridge National Laboratory}{August 2022}
+\cvrow{}{Honors Thesis Fellowship, University of Dayton}{April 2022}
+\cvrow{}{Finalist, International Science and Engineering Fair}{May 2018}
+
+\vspace{10pt}
+
+% ------------------------------- Skills -------------------------------
+\cvpar{Skills}{Deep learning for medical imaging and data imputation using Python/PyTorch}
+
+\vspace{4pt}
+\cvpar{}{Adept at statistical analysis and interpretation}
+
+\vspace{4pt}
+\cvpar{}{Technical writing and typesetting using Microsoft Office and LaTeX}
+
+\vspace{4pt}
+\cvpar{}{Effective scientific communication and visual aid preparation}
+
+\vspace{4pt}
+\cvpar{}{Strong critical thinking and analytical skills}
+
+\end{document}

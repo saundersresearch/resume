@@ -1,0 +1,98 @@
+\ProvidesFile{cvbib.bbx}[CV-style bibliography driver]
+
+% ---- custom fields ------------------------------------------------------
+% (declaring a field with datatype=boolean crashes this biber build, so
+% "nohighlight" is a literal field checked against the string "true")
+\DeclareDatamodelFields[type=field, datatype=literal]{venue}
+\DeclareDatamodelFields[type=field, datatype=literal]{groupcredit}
+\DeclareDatamodelFields[type=field, datatype=literal]{nohighlight}
+
+% ---- bold the CV owner's name wherever it appears as an author, and join
+% the name list ourselves (", " between names, Oxford ", and " before the
+% last) using biblatex's listcount/liststop position counters -----------
+\DeclareNameFormat{default}{%
+  \ifdefstring{\namepartfamily}{Saunders}
+    {\iffieldequalstr{nohighlight}{true}{\let\cvwrap\relax}{\let\cvwrap\textbf}}
+    {\let\cvwrap\relax}%
+  \cvwrap{\ifdefvoid{\namepartgiven}{}{\namepartgiven\space}\namepartfamily}%
+  \ifnumequal{\value{listcount}}{\value{liststop}}
+    {}
+    {\ifnumequal{\value{listcount}}{\numexpr\value{liststop}-1\relax}
+       {\addcomma\space and\space}
+       {\addcomma\space}}%
+}
+
+% ---- one driver for every entry: Author list. Title. Venue. ------------
+% Author and title are both optional (Talks entries have neither an
+% author byline nor always a title), so each piece only prints -- with
+% its trailing ". " -- when actually present.
+\DeclareBibliographyDriver{article}{%
+  \ifnameundef{author}{}{%
+    \printnames{author}%
+    \iffieldundef{groupcredit}{}{\space\printfield{groupcredit}}%
+    .\space}%
+  \iffieldundef{title}{}{\printfield{title}.\space}%
+  \printfield{venue}%
+  \finentry}
+
+% ---- environment that lays entries out in the CV's label column -------
+% Every entry gets either a blank label column (published) or an italic
+% status tag (set via \cvbibtag before each \printbibliography call: ""
+% for published, "accepted"/"submitted" otherwise). The very first entry
+% of a *section* (spanning possibly several \printbibliography calls --
+% Conference Papers' accepted entries print before its plain published
+% ones) also carries the bold section name, via \cvbibfirst/\cvbiblabel
+% set once in the main document with \global since it must survive past
+% this environment's own \endgroup.
+%
+% That first entry's label uses \cvlabelbox (defined in the main .tex,
+% alongside \cvrow/\cvpar), so a name too wide for \cvlabelwidth (e.g.
+% "Journal Articles") wraps onto a second line instead of overflowing,
+% with no gap before the citation text that follows -- see \cvlabelbox's
+% own comment for why a corrective depth override is needed for that. A
+% status tag, if this first entry also has one, goes on its own line
+% right after the label -- \bibpar inside the box -- landing under
+% whichever line the label ended on. Every later entry's label is just a
+% \makebox (blank, or the plain tag) -- \makebox, unlike \parbox, keeps
+% its reserved width even completely empty, so it needs no such fix.
+\newcounter{cvbibitem}
+\providecommand{\cvbibtag}{}
+\providecommand{\cvbiblabel}{}
+\newif\ifcvbibfirst
+% \defbibenvironment grabs its three arguments with a non-\long macro, so a
+% bare \par token inside the braces looks like a runaway argument. Route
+% through a differently-named alias instead.
+\let\bibpar\par
+
+% \hangindent set per item (the obvious approach) does not survive
+% biblatex's internal per-entry processing (wrapped lines fell back to
+% the left margin) -- but set *once* in this environment's begin-code,
+% for the whole group, it does survive across every entry's \par. That
+% also restores the property that made a wrapping \parbox label flush
+% with its content in the first place (elsewhere in this document): line
+% 1 of a \hangindent paragraph is exempt from the indent (\hangafter=1),
+% so it's free to sit beside the label at full width, while only the
+% lines after it -- from either the label overflowing or the citation
+% itself wrapping -- get pushed to \cvlabelwidth.
+\defbibenvironment{cvpub}
+  {\bibpar
+   \begingroup
+   \hangindent=\cvlabelwidth\hangafter=1\relax
+   \parindent=0pt\relax
+   \setcounter{cvbibitem}{0}}
+  {\bibpar\endgroup}
+  {\bibpar
+   \ifnumequal{\value{cvbibitem}}{0}{}{\ifdefempty{\cvbibtag}{\addvspace{6pt}}{\addvspace{10pt}}}%
+   \noindent
+   \ifcvbibfirst
+     \cvlabelbox{\textbf{\cvbiblabel}%
+       \ifdefempty{\cvbibtag}{}{\bibpar\textit{(\cvbibtag)}}}%
+     \global\cvbibfirstfalse
+   \else
+     \ifdefempty{\cvbibtag}
+       {\makebox[\cvlabelwidth][l]{}}
+       {\makebox[\cvlabelwidth][l]{\textit{(\cvbibtag)}}}%
+   \fi
+   \stepcounter{cvbibitem}}
+
+\endinput
