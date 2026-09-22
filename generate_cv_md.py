@@ -147,7 +147,9 @@ def format_entry(entry, status):
         parts.append(authors_md + ".")
     title = latex_to_md(f.get("title", "")).rstrip(".")
     if title:
-        parts.append(f"“{title}”.")
+        url = f.get("url")
+        title_md = f"[{title}]({url})" if url else title
+        parts.append(f"“{title_md}”.")
     year = f.get("year")
     doi = f.get("doi")
     note = f.get("note")

@@ -108,4 +108,4 @@
 
 * “Vasculature-informed spatial smoothing of white matter functional magnetic resonance imaging”. Vanderbilt University Institute of Imaging Science Retreat, October 2024.
 
-* “Deep learning for a healthier world: Detecting and grading diabetic retinopathy”. University of Dayton Honors Thesis Signature Talks at Stander Symposium, April 2023.
+* “[Deep learning for a healthier world: Detecting and grading diabetic retinopathy](https://www.youtube.com/watch?v=J4TdP8eGEm)”. University of Dayton Honors Thesis Signature Talks at Stander Symposium, April 2023.
