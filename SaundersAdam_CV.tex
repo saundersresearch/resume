@@ -129,14 +129,7 @@
 % own "DOI:" label (and wraps it as a link), so it must be reset to a bare
 % value too -- cvbib.bbx's driver supplies the "doi:" label itself.
 \DeclareFieldFormat{doi}{#1}
-\addbibresource[label=journal-published]{bib/journal-published.bib}
-\addbibresource[label=journal-accepted]{bib/journal-accepted.bib}
-\addbibresource[label=journal-submitted]{bib/journal-submitted.bib}
-\addbibresource[label=conference-published]{bib/conference-published.bib}
-\addbibresource[label=conference-accepted]{bib/conference-accepted.bib}
-\addbibresource[label=conference-submitted]{bib/conference-submitted.bib}
-\addbibresource[label=talks]{bib/talks.bib}
-\addbibresource[label=abstracts]{bib/abstracts.bib}
+\addbibresource{bib/publications.bib}
 \nocite{*}
 
 \begin{document}
@@ -240,8 +233,16 @@
 % ------------------------------- Abstracts/Short Papers -------------------------------
 \global\cvbibfirsttrue
 \renewcommand{\cvbiblabel}{Abstracts/Short Papers}
+\renewcommand{\cvbibtag}{accepted}
+\printbibliography[keyword=abstracts-accepted, env=cvpub, heading=none]
+
+\vspace{10pt}
 \renewcommand{\cvbibtag}{}
-\printbibliography[keyword=abstracts, env=cvpub, heading=none]
+\printbibliography[keyword=abstracts-published, env=cvpub, heading=none]
+
+\vspace{10pt}
+\renewcommand{\cvbibtag}{submitted}
+\printbibliography[keyword=abstracts-submitted, env=cvpub, heading=none]
 
 \vspace{10pt}
 
@@ -254,15 +255,16 @@
 \vspace{10pt}
 
 % ------------------------------- Professional Outreach -------------------------------
-\cvrow{Professional Outreach}{Reviewer, \textit{Medical Image Analysis}.}{2026}
-\cvrow{}{Secretary, VALIANT Attempt, Vanderbilt University.}{2024 -- Present}
-\cvrow{}{Reviewer, \textit{Scientific Reports}.}{2025}
-\cvrow{}{Reviewer, \textit{Journal of Medical Imaging}.}{2024}
+\cvrow{Professional Outreach}{Secretary, VALIANT Attempt, Vanderbilt University}{2024 -- Present}
+\cvrow{}{Reviewer, \textit{SASHIMI Workshop at MICCAI}}{2026}
+\cvrow{}{Reviewer, \textit{Medical Image Analysis}}{1 paper}
+\cvrow{}{Reviewer, \textit{Scientific Reports}}{1 paper}
+\cvrow{}{Reviewer, \textit{Journal of Medical Imaging}}{1 paper}
 
 \vspace{10pt}
 
 % ------------------------------- Honors and Awards -------------------------------
-\cvrow{Honors and Awards}{Outstanding Reviewer, SASHIMI 2026 at MICCAI 2026}{October 2026}
+\cvrow{Honors and Awards}{Outstanding Reviewer, SASHIMI Workshop at MICCAI}{October 2026}
 \cvrow{}{Third Place, 3-minute Poster Competition, SPIE Medical Imaging}{February 2026}
 \cvrow{}{Robert F. Wagner All-Conference Best Student Paper Finalist, SPIE Medical Imaging}{February 2025}
 \cvrow{}{Second Place, 3-minute Poster Competition, SPIE Medical Imaging}{February 2025}

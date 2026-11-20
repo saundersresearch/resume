@@ -8,6 +8,7 @@ maintained below, mirroring the way they're hand-maintained directly in the
 
 Run: python3 generate_cv_md.py
 """
+
 import re
 
 BIB_DIR = "bib"
@@ -191,13 +192,17 @@ def sort_key(entry):
         return 0
 
 
+ALL_ENTRIES = parse_bib(f"{BIB_DIR}/publications.bib")
+
+
 def render_section(status_files):
     """status_files: list of (path, status) in status-priority order
     (accepted, published, submitted) -- matching the PDF's own grouping.
     Entries within each status are sorted by year, descending."""
     lines = []
-    for path, status in status_files:
-        entries = sorted(parse_bib(f"{BIB_DIR}/{path}"), key=sort_key, reverse=True)
+    for keyword, status in status_files:
+        entries = [e for e in ALL_ENTRIES if e["fields"].get("keywords") == keyword]
+        entries = sorted(entries, key=sort_key, reverse=True)
         for entry in entries:
             lines.append(f"* {format_entry(entry, status)}")
             lines.append("")
@@ -205,18 +210,21 @@ def render_section(status_files):
 
 
 JOURNAL_FILES = [
-    ("journal-accepted.bib", "accepted"),
-    ("journal-published.bib", "published"),
-    ("journal-submitted.bib", "submitted"),
+    ("journal-accepted", "accepted"),
+    ("journal-published", "published"),
+    ("journal-submitted", "submitted"),
 ]
 CONFERENCE_FILES = [
-    ("conference-accepted.bib", "accepted"),
-    ("conference-published.bib", "published"),
-    ("conference-submitted.bib", "submitted"),
+    ("conference-accepted", "accepted"),
+    ("conference-published", "published"),
+    ("conference-submitted", "submitted"),
 ]
-ABSTRACT_FILES = [("abstracts.bib", "published")]
-TALK_FILES = [("talks.bib", "published")]
-
+ABSTRACT_FILES = [
+    ("abstracts-accepted", "accepted"),
+    ("abstracts-published", "published"),
+    ("abstracts-submitted", "submitted"),
+]
+TALK_FILES = [("talks", "published")]
 
 
 def main():
