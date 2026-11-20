@@ -129,6 +129,12 @@
 % own "DOI:" label (and wraps it as a link), so it must be reset to a bare
 % value too -- cvbib.bbx's driver supplies the "doi:" label itself.
 \DeclareFieldFormat{doi}{#1}
+% Talks sort by year then month, newest first (month is stored as a number).
+\DeclareSortingTemplate{cvtalks}{
+  \sort[direction=descending]{\field{year}}
+  \sort[direction=descending]{\field{month}}
+  \sort{\field{title}}
+}
 \addbibresource{bib/publications.bib}
 \nocite{*}
 
@@ -250,7 +256,7 @@
 \global\cvbibfirsttrue
 \renewcommand{\cvbiblabel}{Talks}
 \renewcommand{\cvbibtag}{}
-\printbibliography[keyword=talks, env=cvpub, heading=none]
+\newrefcontext[sorting=cvtalks]\printbibliography[keyword=talks, env=cvpub, heading=none]
 
 \vspace{10pt}
 

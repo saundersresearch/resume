@@ -136,6 +136,9 @@ def doi_link(doi):
     # (even for arXiv's 10.48550/ DOI prefix) rather than relabeling it.
     return f"[doi: {doi}](https://doi.org/{doi})"
 
+MONTHS = ["January", "February", "March", "April", "May", "June", "July",
+          "August", "September", "October", "November", "December"]
+
 
 def format_entry(entry, status):
     f = entry["fields"]
@@ -170,6 +173,8 @@ def format_entry(entry, status):
     else:  # inproceedings (conference papers, abstracts, talks)
         booktitle = latex_to_md(f.get("booktitle", ""))
         month = f.get("month")
+        if month and month.isdigit():
+            month = MONTHS[int(month) - 1]
         date = f"{month} {year}" if month and year else (year or "")
         # A conference's date is fixed regardless of review status, so
         # unlike journals it's kept even for an accepted/submitted entry.
@@ -186,10 +191,14 @@ def format_entry(entry, status):
 
 
 def sort_key(entry):
+    # Talks sort by year then month (newest first); everything else by year
+    # only, matching the PDF's sorting=ydnt.
     try:
-        return int(entry["fields"].get("year", 0))
+        year = int(entry["fields"].get("year", 0))
+        month = entry["fields"].get("month", "0")
+        return (year, int(month) if entry["fields"].get("keywords") == "talks" else 0)
     except ValueError:
-        return 0
+        return (0, 0)
 
 
 ALL_ENTRIES = parse_bib(f"{BIB_DIR}/publications.bib")

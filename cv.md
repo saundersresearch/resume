@@ -106,6 +106,10 @@
 * Ema Topolnjak, Gaurav Rudravaram, **Adam M. Saunders**, Sam Bogdanov, Malvika Viswanathan, Kurt G. Schilling, Zhongliang Zu, and Bennett A. Landman. “Optimizing Reduced Z-Spectrum Sampling for Preserving Quantitative Biophysical Parameter Estimation”. Submitted to International Society for Magnetic Resonance in Medicine, 2027.
 
 ## Talks
+* “The fly who does QA”. VALIANT VALx Talks, October 2026.
+
+* “From N=10 to N=10,000: Reproducible AI Workflows with Snakemake”. VALIANT AI Summer School, August 2026.
+
 * “Phenotype discovery of traumatic brain injury segmentations from heterogeneous multi-site data”. SPIE Medical Imaging: Image Processing, February 2026.
 
 * “DeepN4: Learning ITKN4 bias field correction for T1-weighted images”. DIPY Workshop, March 2025.
